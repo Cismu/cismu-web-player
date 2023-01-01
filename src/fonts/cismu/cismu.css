@@ -1,0 +1,143 @@
+@font-face {
+  font-family: 'cismu';
+  src:
+    url('fonts/cismu.ttf?tpjqlq') format('truetype'),
+    url('fonts/cismu.woff?tpjqlq') format('woff'),
+    url('fonts/cismu.svg?tpjqlq#cismu') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+i {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'cismu' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.cismu-backward-1:before {
+  content: "\e900";
+}
+.cismu-backward:before {
+  content: "\e901";
+}
+.cismu-next:before {
+  content: "\e902";
+}
+.cismu-back:before {
+  content: "\e903";
+}
+.cismu-uniE904:before {
+  content: "\e904";
+}
+.cismu-forward-1:before {
+  content: "\e905";
+}
+.cismu-repeat-2:before {
+  content: "\e906";
+}
+.cismu-repeat-3:before {
+  content: "\e907";
+}
+.cismu-repeat:before {
+  content: "\e908";
+}
+.cismu-repear-1:before {
+  content: "\e909";
+}
+.cismu-random:before {
+  content: "\e90a";
+}
+.cismu-volume-low-1:before {
+  content: "\e90b";
+}
+.cismu-no-volume:before {
+  content: "\e90c";
+}
+.cismu-volume-mute:before {
+  content: "\e90d";
+}
+.cismu-volume-low:before {
+  content: "\e90e";
+}
+.cismu-volume-middle:before {
+  content: "\e90f";
+}
+.cismu-volume-high:before {
+  content: "\e910";
+}
+.cismu-music-1:before {
+  content: "\e911";
+}
+.cismu-no-music-1:before {
+  content: "\e912";
+}
+.cismu-no-music-2:before {
+  content: "\e913";
+}
+.cismu-music:before {
+  content: "\e914";
+}
+.cismu-stop:before {
+  content: "\e915";
+}
+.cismu-play:before {
+  content: "\e916";
+}
+.cismu-pause:before {
+  content: "\e917";
+}
+.cismu-full:before {
+  content: "\e91c";
+}
+.cismu-extend:before {
+  content: "\e91d";
+}
+.cismu-file-music:before {
+  content: "\e920";
+}
+.cismu-folder-music:before {
+  content: "\e921";
+}
+.cismu-playlist:before {
+  content: "\e922";
+}
+.cismu-remote:before {
+  content: "\e924";
+}
+.cismu-media:before {
+  content: "\e925";
+}
+.cismu-speaker:before {
+  content: "\e926";
+}
+.cismu-view-music:before {
+  content: "\e928";
+}
+.cismu-user-music:before {
+  content: "\e929";
+}
+.cismu-uniE92B:before {
+  content: "\e92b";
+}
+.cismu-uniE92C:before {
+  content: "\e92c";
+}
+.cismu-uniE92D:before {
+  content: "\e92d";
+}
+.cismu-wave-0:before {
+  content: "\e92f";
+}
+.cismu-wave-1:before {
+  content: "\e930";
+}

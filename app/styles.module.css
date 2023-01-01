@@ -1,0 +1,25 @@
+.grid-areas {
+  grid-template-areas:
+    "page-topbar page-topbar"
+    "page-sidebar page-content"
+    "page-player page-player";
+}
+
+.grid-areas-topbar {
+  grid-area: page-topbar;
+}
+
+.grid-areas-sidebar {
+  grid-area: page-sidebar;
+}
+
+.grid-areas-content {
+  grid-area: page-content;
+}
+
+.grid-areas-player {
+  grid-area: page-player;
+  min-height: 75px;
+  max-height: 85px;
+  width: 100%;
+}
