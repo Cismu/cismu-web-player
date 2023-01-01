@@ -12,14 +12,20 @@ export default function Page() {
 
   useEffect(() => {
     document.addEventListener("playergetsource", Mount);
+    document.addEventListener("playersetsource", unMount);
 
     return function cleanup() {
       document.removeEventListener("playergetsource", Mount);
+      document.removeEventListener("playersetsource", unMount);
     };
   }, [!isLoading]);
 
   function Mount(e: any) {
     setAudioMotion(e.detail);
+  }
+
+  function unMount(e: any) {
+    setAudioMotion(null);
   }
 
   if (!isLoading) {

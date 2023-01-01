@@ -54,6 +54,7 @@ class Player extends React.Component<Props, State> {
       videoElement: undefined,
       audioSourceNode: undefined,
       audioContext: undefined,
+      isAnalyzer: false,
       queue: [],
     };
   }
@@ -117,6 +118,24 @@ class Player extends React.Component<Props, State> {
 
   stop() {}
 
+  toggleAnalyzer() {
+    if (this.state.audioSourceNode && !this.state.isAnalyzer) {
+      const customEventCount = new CustomEvent("playergetsource", {
+        detail: this.state.audioSourceNode,
+      });
+
+      document.dispatchEvent(customEventCount);
+      this.setState({
+        isAnalyzer: true,
+      });
+    } else {
+      document.dispatchEvent(new Event("playersetsource"));
+      this.setState({
+        isAnalyzer: false,
+      });
+    }
+  }
+
   mediaSession() {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: playground.title,
@@ -161,17 +180,7 @@ class Player extends React.Component<Props, State> {
             <Options />
           </div>
         </div>
-        <button
-          onClick={() => {
-            if (this.state.audioSourceNode) {
-              const customEventCount = new CustomEvent("playergetsource", {
-                detail: this.state.audioSourceNode,
-              });
-
-              document.dispatchEvent(customEventCount);
-            }
-          }}
-        >
+        <button onClick={() => this.toggleAnalyzer()}>
           Active AudioMotion
         </button>
       </div>
@@ -190,6 +199,7 @@ interface State {
   isReady: boolean;
   audioSourceNode: MediaElementAudioSourceNode | undefined;
   audioContext: AudioContext | undefined;
+  isAnalyzer: boolean;
   queue: Track[];
 }
 

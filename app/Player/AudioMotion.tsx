@@ -21,6 +21,11 @@ export default function AudioMotionAnalyzer(props: any) {
       };
       setMotion(new AudioMotion(container, options));
     }
+
+    return function clearUp() {
+      motion?.disconnectOutput();
+      motion?.disconnectInput();
+    };
   }, [!isLoad]);
 
   if (motion) {
