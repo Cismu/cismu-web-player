@@ -52,6 +52,8 @@ class Player extends React.Component<Props, State> {
       isReady: false,
       audioElement: undefined,
       videoElement: undefined,
+      audioSourceNode: undefined,
+      audioContext: undefined,
       queue: [],
     };
   }
@@ -65,8 +67,13 @@ class Player extends React.Component<Props, State> {
   }
 
   componentDidMount(): void {
-    if (!this.state.audioElement && !this.state.videoElement) {
-      this.setState(() => {
+    if (
+      !this.state.audioElement &&
+      !this.state.videoElement &&
+      !this.state.audioSourceNode &&
+      !this.state.audioContext
+    ) {
+      this.setState((prevState) => {
         let audio = document.createElement("audio");
         audio.src = playground.src;
         audio.crossOrigin = "anonymous";
@@ -75,9 +82,15 @@ class Player extends React.Component<Props, State> {
         video.src = playground.src;
         video.crossOrigin = "anonymous";
 
+        let audioContext = new AudioContext();
+
+        let audioNode = audioContext.createMediaElementSource(audio);
+
         return {
           audioElement: audio,
           videoElement: video,
+          audioSourceNode: audioNode,
+          audioContext: audioContext,
         };
       });
     }
@@ -150,10 +163,13 @@ class Player extends React.Component<Props, State> {
         </div>
         <button
           onClick={() => {
-            const customEventCount = new CustomEvent("playergetsource", {
-              detail: this.state.audioElement,
-            });
-            document.dispatchEvent(customEventCount);
+            if (this.state.audioSourceNode) {
+              const customEventCount = new CustomEvent("playergetsource", {
+                detail: this.state.audioSourceNode,
+              });
+
+              document.dispatchEvent(customEventCount);
+            }
           }}
         >
           Active AudioMotion
@@ -162,27 +178,6 @@ class Player extends React.Component<Props, State> {
     );
   }
 }
-
-// -webkit-box-orient: vertical;
-// -webkit-box-direction: normal;
-// background-color: #181818;
-// border-top: 1px solid #282828;
-// display: -webkit-box;
-// display: -ms-flexbox;
-// display: flex;
-// -ms-flex-direction: column;
-// flex-direction: column;
-// height: auto;
-// min-width: 620px;
-// -webkit-user-select: none;
-// -moz-user-select: none;
-// -ms-user-select: none;
-// user-select: none;
-
-// display: grid;
-// grid-template-columns: 1fr 1fr 1fr;
-// grid-template-rows: 1fr;
-// grid-auto-flow: column;
 
 export default Player;
 
@@ -193,6 +188,8 @@ interface State {
   isPlaying: boolean;
   isPaused: boolean;
   isReady: boolean;
+  audioSourceNode: MediaElementAudioSourceNode | undefined;
+  audioContext: AudioContext | undefined;
   queue: Track[];
 }
 

@@ -1,42 +1,29 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import AudioMotionAnalyzer from "audiomotion-analyzer";
-
-type Motion = AudioMotionAnalyzer | null;
-
-function AudioMotion(props: any) {
-  const [isLoad, setLoad] = useState(false);
-  const [audioMotion, setAudioMotion] = useState<Motion>(null);
-  const container = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setLoad(true);
-  });
-
-  if (isLoad && !audioMotion) {
-    let motionContainer = !container.current ? undefined : container.current;
-
-    let motion = new AudioMotionAnalyzer(motionContainer, {
-      source: props.source,
-    });
-    motion.height = 500;
-    setAudioMotion(motion);
-  }
-
-  return <div ref={container}></div>;
-}
+import { useEffect, useState } from "react";
+import AudioMotion from "./Player/AudioMotion";
 
 export default function Page() {
   const [isLoading, setLoading] = useState(true);
   const [audioMotion, setAudioMotion] = useState(null);
   useEffect(() => {
     setLoading(false);
-
-    document.addEventListener("playergetsource", (e: any) => {
-      setAudioMotion(e.detail);
-    });
   });
+
+  useEffect(() => {
+    document.addEventListener("playergetsource", Mount);
+
+    return function cleanup() {
+      document.removeEventListener("playergetsource", Mount);
+    };
+  }, [!isLoading]);
+
+  function Mount(e: any) {
+    setAudioMotion(e.detail);
+  }
+
+  if (!isLoading) {
+  }
 
   function Play() {
     if (!isLoading) {
@@ -50,9 +37,15 @@ export default function Page() {
     }
   }
 
+  let audioMotionC = null;
+
+  if (!isLoading && audioMotion) {
+    audioMotionC = <AudioMotion source={audioMotion} />;
+  }
+
   return (
     <>
-      {audioMotion ? <AudioMotion source={audioMotion} /> : null}
+      {audioMotionC}
       <button onClick={Play}>play</button>
       <button onClick={Pause}>pause</button>
     </>
