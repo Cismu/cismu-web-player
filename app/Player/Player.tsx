@@ -6,11 +6,13 @@ import Options from "./Options";
 import Slider from "./Slider";
 import Metadata from "./Metadata";
 import { ArtworkItem, Track, EData } from "./types";
+import styles from "./styles.module.css"
 
 const playground: Track = {
   title: "Playground (from the series Arcane League of Legends)",
   album: "Arcane League of Legends (Soundtrack from the Animated Series)",
-  artist: ["Arcane", "Bea Miller", "Yung Baby Tate"],
+  artist: "Bea Miller",
+  artists: ["Arcane", "Bea Miller", "Yung Baby Tate"],
   artwork: [
     {
       src: "https://i.ibb.co/vhKy16K/cover-96x96.png",
@@ -62,6 +64,10 @@ class Player extends React.Component<Props, State> {
     if (typeof window !== "undefined") {
       this.audioElement = document.createElement("audio");
       this.videoElement = document.createElement("video");
+      this.videoElement.crossOrigin = "anonymous";
+      this.videoElement.autoplay = true;
+      this.videoElement.loop = false;
+      this.videoElement.muted = true;
 
       this.audioContext = new AudioContext();
       this.AudioMap = new WeakMap()
@@ -74,10 +80,6 @@ class Player extends React.Component<Props, State> {
       }
 
       this.audioSourceNode.connect(this.audioContext.destination)
-
-      if ("mediaSession" in navigator) {
-        this.mediaSession();
-      }
     }
   }
 
@@ -92,22 +94,21 @@ class Player extends React.Component<Props, State> {
     document.addEventListener("playerplay", this.play.bind(this));
     document.addEventListener("playerpause", this.pause.bind(this));
 
-    this.mediaMetadata()
+
+    if ("mediaSession" in navigator) {
+      this.mediaSession();
+      this.mediaMetadata();
+    }
+
     if (this.audioElement) {
       this.audioElement.crossOrigin = "anonymous";
       this.audioElement.src = playground.src;
-      this.audioElement.addEventListener('play', () => {
-        navigator.mediaSession.playbackState = 'playing';
-      });
-      this.audioElement.addEventListener('pause', () => {
-        navigator.mediaSession.playbackState = 'paused';
-      });
     }
   }
 
-  play() {
+  async play() {
     if (this.audioElement) {
-      this.audioElement.play();
+      await this.audioElement.play();
     }
   }
 
@@ -118,11 +119,9 @@ class Player extends React.Component<Props, State> {
   }
 
   PictureinPicture() {
-    if (this.videoElement) {
-      const target = this.videoElement;
-      target.crossOrigin = "anonymous"
-      target.loop = false
-      target.autoplay = true
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture();
+    } else if (document.pictureInPictureEnabled) {
       const source = document.createElement('canvas');
       source.height = 260
       source.width = 260
@@ -131,27 +130,24 @@ class Player extends React.Component<Props, State> {
       image.crossOrigin = "anonymous"
       image.src = String(playground.artwork.at(-1)?.src);
 
-      document.body.appendChild(target)
-      document.body.appendChild(source)
-
       if (ctx) {
         image.onload = () => {
           ctx.drawImage(image, 0, 0, source.width, source.height);
         }
       }
 
-      const stream = source.captureStream(1);
-      target.srcObject = stream;
-
-      target.onloadedmetadata = () => {
-        if (document.pictureInPictureElement) {
-          document.exitPictureInPicture();
-        } else if (document.pictureInPictureEnabled) {
-          target.requestPictureInPicture();
+      const stream = source.captureStream(25);
+      if (this.videoElement) {
+        this.videoElement.srcObject = stream;
+        this.videoElement.onloadedmetadata = () => {
+          if (this.videoElement) {
+            this.videoElement.requestPictureInPicture();
+            this.videoElement.play();
+          }
         }
       }
-
     }
+
   }
 
   toggleAnalyzer() {
@@ -185,29 +181,27 @@ class Player extends React.Component<Props, State> {
 
   mediaSession() {
     type ActionTypes = [MediaSessionAction, () => void]
-
     const actionHandlers: ActionTypes[] = [
       [
         'play',
         async () => {
           if (this.audioElement) {
-            if (this.videoElement)
-              await this.videoElement.play();
-
             await this.audioElement.play();
           }
+          if (this.videoElement)
+            await this.videoElement.play()
+          navigator.mediaSession.playbackState = 'playing';
         }
       ],
       [
         'pause',
         () => {
-          console.log("Fanutio")
           if (this.audioElement) {
-            if (this.videoElement)
-              this.videoElement.pause();
-
             this.audioElement.pause();
           }
+          if (this.videoElement)
+            this.videoElement.pause()
+          navigator.mediaSession.playbackState = 'paused';
         }
       ],
       [
@@ -230,30 +224,42 @@ class Player extends React.Component<Props, State> {
   }
 
   render(): React.ReactNode {
+    let style = {
+      backgroundColor: "#23232d",
+      border: "1px solid #32323d",
+    }
+    // transform: translate3d(0px, 0px, 0px);
+    // will-change: transform;
+
     return (
-      <>
-        <button onClick={() => this.PictureinPicture()}>
-          Picture-in-Picture API
-        </button>
-        <button onClick={() => this.play()}>
-          play
-        </button>
-        <div className="flex h-full flex-col items-center">
-          <div className="w-full">
-            <Slider />
-          </div>
-          <div className="h-full w-full">
-            <div className="flex h-full flex-row">
-              <Metadata track={playground} />
-              <Controls />
-              <Options />
+      <div style={style} className="flex h-[80px] items-center px-6">
+        <div>Controls</div>
+        <div className="flex-1 px-[72px]">
+          <div className="m-auto w-4/5 max-w-[800px]">
+            <div className="flex">
+              <div>Label</div>
+              <div className="flex-1">
+                <div className="relative overflow-hidden whitespace-nowrap">
+                  <div className={`${styles["track-title-effect"]}`}>
+                    {playground.title}·{playground.artist}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <button>K</button>
+                <button>L</button>
+                <button>V</button>
+                <button>N</button>
+                <button>+</button>
+              </div>
+            </div>
+            <div>
+              <input className="w-full" type="range" />
             </div>
           </div>
-          <button onClick={() => this.toggleAnalyzer()}>
-            Active AudioMotion
-          </button>
         </div>
-      </>
+        <div>Options</div>
+      </div>
     );
   }
 }

@@ -6,7 +6,8 @@ export interface ArtworkItem {
 
 export interface Track {
   title: string;
-  artist: string | string[];
+  artist: string;
+  artists: string[];
   album: string;
   artwork: ArtworkItem[];
   src: string;
