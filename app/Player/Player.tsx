@@ -96,7 +96,12 @@ class Player extends React.Component<Props, State> {
     if (this.audioElement) {
       this.audioElement.crossOrigin = "anonymous";
       this.audioElement.src = playground.src;
-      console.log("Hola")
+      this.audioElement.addEventListener('play', () => {
+        navigator.mediaSession.playbackState = 'playing';
+      });
+      this.audioElement.addEventListener('pause', () => {
+        navigator.mediaSession.playbackState = 'paused';
+      });
     }
   }
 
@@ -134,6 +139,7 @@ class Player extends React.Component<Props, State> {
           ctx.drawImage(image, 0, 0, source.width, source.height);
         }
       }
+
       const stream = source.captureStream(1);
       target.srcObject = stream;
 
@@ -185,8 +191,10 @@ class Player extends React.Component<Props, State> {
         'play',
         async () => {
           if (this.audioElement) {
+            if (this.videoElement)
+              await this.videoElement.play();
+
             await this.audioElement.play();
-            navigator.mediaSession.playbackState = "playing";
           }
         }
       ],
@@ -195,11 +203,21 @@ class Player extends React.Component<Props, State> {
         () => {
           console.log("Fanutio")
           if (this.audioElement) {
+            if (this.videoElement)
+              this.videoElement.pause();
+
             this.audioElement.pause();
-            navigator.mediaSession.playbackState = "paused";
           }
         }
       ],
+      [
+        'previoustrack',
+        () => { }
+      ],
+      [
+        'nexttrack',
+        () => { }
+      ]
     ]
 
     for (const [action, handler] of actionHandlers) {
