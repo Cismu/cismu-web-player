@@ -93,18 +93,16 @@ class Player extends React.Component<Props, State> {
     document.addEventListener("playerpause", this.pause.bind(this));
 
     this.mediaMetadata()
+    if (this.audioElement) {
+      this.audioElement.crossOrigin = "anonymous";
+      this.audioElement.src = playground.src;
+      console.log("Hola")
+    }
   }
 
   play() {
     if (this.audioElement) {
-      console.log("Ok desu")
-      this.audioElement.src = playground.src;
-      this.audioElement.crossOrigin = "anonymous";
-      this.audioElement.onloadeddata = () => {
-        if (this.audioElement) {
-          this.audioElement.play();
-        }
-      }
+      this.audioElement.play();
     }
   }
 
@@ -195,6 +193,7 @@ class Player extends React.Component<Props, State> {
       [
         'pause',
         () => {
+          console.log("Fanutio")
           if (this.audioElement) {
             this.audioElement.pause();
             navigator.mediaSession.playbackState = "paused";
