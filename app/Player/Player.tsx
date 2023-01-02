@@ -72,7 +72,12 @@ class Player extends React.Component<Props, State> {
         this.audioSourceNode = this.audioContext.createMediaElementSource(this.audioElement);
         this.AudioMap.set(this.audioElement, this.audioSourceNode);
       }
+
       this.audioSourceNode.connect(this.audioContext.destination)
+
+      if ("mediaSession" in navigator) {
+        this.mediaSession();
+      }
     }
   }
 
@@ -84,16 +89,15 @@ class Player extends React.Component<Props, State> {
   }
 
   componentDidMount(): void {
-    if ("mediaSession" in navigator) {
-      this.mediaSession();
-    }
-
     document.addEventListener("playerplay", this.play.bind(this));
     document.addEventListener("playerpause", this.pause.bind(this));
+
+    this.mediaMetadata()
   }
 
   play() {
     if (this.audioElement) {
+      console.log("Ok desu")
       this.audioElement.src = playground.src;
       this.audioElement.crossOrigin = "anonymous";
       this.audioElement.onloadeddata = () => {
@@ -107,6 +111,42 @@ class Player extends React.Component<Props, State> {
   pause() {
     if (this.audioElement) {
       this.audioElement.pause();
+    }
+  }
+
+  PictureinPicture() {
+    if (this.videoElement) {
+      const target = this.videoElement;
+      target.crossOrigin = "anonymous"
+      target.loop = false
+      target.autoplay = true
+      const source = document.createElement('canvas');
+      source.height = 260
+      source.width = 260
+      const ctx = source.getContext('2d');
+      const image = new Image();
+      image.crossOrigin = "anonymous"
+      image.src = String(playground.artwork.at(-1)?.src);
+
+      document.body.appendChild(target)
+      document.body.appendChild(source)
+
+      if (ctx) {
+        image.onload = () => {
+          ctx.drawImage(image, 0, 0, source.width, source.height);
+        }
+      }
+      const stream = source.captureStream(1);
+      target.srcObject = stream;
+
+      target.onloadedmetadata = () => {
+        if (document.pictureInPictureElement) {
+          document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled) {
+          target.requestPictureInPicture();
+        }
+      }
+
     }
   }
 
@@ -128,7 +168,7 @@ class Player extends React.Component<Props, State> {
     }
   }
 
-  mediaSession() {
+  mediaMetadata() {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: playground.title,
       artist: Array.isArray(playground.artist)
@@ -137,31 +177,50 @@ class Player extends React.Component<Props, State> {
       album: playground.album,
       artwork: playground.artwork,
     });
+  }
 
-    navigator.mediaSession.setActionHandler("play", () => this.play());
-    navigator.mediaSession.setActionHandler("pause", () => this.pause());
-    navigator.mediaSession.setActionHandler("stop", () => { });
+  mediaSession() {
+    type ActionTypes = [MediaSessionAction, () => void]
 
-    navigator.mediaSession.setActionHandler("seekbackward", () => {
-      /* Code excerpted. */
-    });
-    navigator.mediaSession.setActionHandler("seekforward", () => {
-      /* Code excerpted. */
-    });
-    navigator.mediaSession.setActionHandler("seekto", () => {
-      /* Code excerpted. */
-    });
-    navigator.mediaSession.setActionHandler("previoustrack", () => {
-      /* Code excerpted. */
-    });
-    navigator.mediaSession.setActionHandler("nexttrack", () => {
-      /* Code excerpted. */
-    });
+    const actionHandlers: ActionTypes[] = [
+      [
+        'play',
+        async () => {
+          if (this.audioElement) {
+            await this.audioElement.play();
+            navigator.mediaSession.playbackState = "playing";
+          }
+        }
+      ],
+      [
+        'pause',
+        () => {
+          if (this.audioElement) {
+            this.audioElement.pause();
+            navigator.mediaSession.playbackState = "paused";
+          }
+        }
+      ],
+    ]
+
+    for (const [action, handler] of actionHandlers) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (error) {
+        console.log(`The media session action "${action}" is not supported yet.`);
+      }
+    }
   }
 
   render(): React.ReactNode {
     return (
       <>
+        <button onClick={() => this.PictureinPicture()}>
+          Picture-in-Picture API
+        </button>
+        <button onClick={() => this.play()}>
+          play
+        </button>
         <div className="flex h-full flex-col items-center">
           <div className="w-full">
             <Slider />
