@@ -233,7 +233,11 @@ class Player extends React.Component<Props, State> {
 
     return (
       <div style={style} className="flex h-[80px] items-center px-6">
-        <div>Controls</div>
+        <div>
+          <button>B</button>
+          <button>P/P</button>
+          <button>F</button>
+        </div>
         <div className="flex-1 px-[72px]">
           <div className="m-auto w-4/5 max-w-[800px]">
             <div className="flex">
@@ -245,7 +249,7 @@ class Player extends React.Component<Props, State> {
                   </div>
                 </div>
               </div>
-              <div>
+              <div className="flex">
                 <button>K</button>
                 <button>L</button>
                 <button>V</button>
@@ -258,7 +262,15 @@ class Player extends React.Component<Props, State> {
             </div>
           </div>
         </div>
-        <div>Options</div>
+        <div>
+          <button>Chromecast</button>
+          <button>L</button>
+          <button>R</button>
+          <button>V</button>
+          <button>EQ</button>
+          <button>|</button>
+          <button>P/L</button>
+        </div>
       </div>
     );
   }
