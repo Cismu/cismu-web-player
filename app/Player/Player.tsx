@@ -43,6 +43,11 @@ const playground: Track = {
 
 class Player extends React.Component<Props, State> {
   state: State;
+  audioElement?: HTMLAudioElement;
+  videoElement?: HTMLVideoElement;
+  audioSourceNode?: MediaElementAudioSourceNode;
+  AudioMap?: WeakMap<object, MediaElementAudioSourceNode>;
+  audioContext?: AudioContext;
 
   constructor(props: Props) {
     super(props);
@@ -50,13 +55,25 @@ class Player extends React.Component<Props, State> {
       isPlaying: false,
       isPaused: true,
       isReady: false,
-      audioElement: undefined,
-      videoElement: undefined,
-      audioSourceNode: undefined,
-      audioContext: undefined,
       isAnalyzer: false,
       queue: [],
     };
+
+    if (typeof window !== "undefined") {
+      this.audioElement = document.createElement("audio");
+      this.videoElement = document.createElement("video");
+
+      this.audioContext = new AudioContext();
+      this.AudioMap = new WeakMap()
+
+      if (this.AudioMap.has(this.audioElement)) {
+        this.audioSourceNode = this.AudioMap.get(this.audioElement)!; // Non-null assertion operator ! https://stackoverflow.com/q/70723319
+      } else {
+        this.audioSourceNode = this.audioContext.createMediaElementSource(this.audioElement);
+        this.AudioMap.set(this.audioElement, this.audioSourceNode);
+      }
+      this.audioSourceNode.connect(this.audioContext.destination)
+    }
   }
 
   createEvent<EData>(eName: string, data?: EData): Event | CustomEvent<EData> {
@@ -67,42 +84,6 @@ class Player extends React.Component<Props, State> {
   }
 
   componentDidMount(): void {
-    if (this.state.audioElement === undefined) {
-      let audio = document.createElement("audio");
-      audio.src = playground.src;
-      audio.crossOrigin = "anonymous";
-      this.setState({
-        audioElement: audio
-      });
-    }
-
-    if (this.state.videoElement === undefined) {
-      let video = document.createElement("video");
-      video.src = playground.src;
-      video.crossOrigin = "anonymous";
-      this.setState({
-        videoElement: video
-      });
-    }
-
-    if (this.state.audioContext === undefined) {
-      let audioContext = new AudioContext();
-      this.setState({
-        audioContext: audioContext
-      });
-    }
-
-    if (this.state.audioSourceNode === undefined) {
-      if (this.state.audioElement && this.state.audioContext) {
-        let audio = this.state.audioElement;
-        let audioNode = this.state.audioContext.createMediaElementSource(audio);
-        this.setState({
-          audioSourceNode: audioNode
-        });
-      }
-    }
-
-
     if ("mediaSession" in navigator) {
       this.mediaSession();
     }
@@ -112,21 +93,27 @@ class Player extends React.Component<Props, State> {
   }
 
   play() {
-    if (this.state.audioElement) {
-      this.state.audioElement.play();
+    if (this.audioElement) {
+      this.audioElement.src = playground.src;
+      this.audioElement.crossOrigin = "anonymous";
+      this.audioElement.onloadeddata = () => {
+        if (this.audioElement) {
+          this.audioElement.play();
+        }
+      }
     }
   }
 
   pause() {
-    if (this.state.audioElement) {
-      this.state.audioElement.pause();
+    if (this.audioElement) {
+      this.audioElement.pause();
     }
   }
 
   toggleAnalyzer() {
-    if (this.state.audioSourceNode && !this.state.isAnalyzer) {
+    if (this.audioSourceNode && !this.state.isAnalyzer) {
       const customEventCount = new CustomEvent("playergetsource", {
-        detail: this.state.audioSourceNode,
+        detail: this.audioSourceNode,
       });
 
       document.dispatchEvent(customEventCount);
@@ -174,21 +161,23 @@ class Player extends React.Component<Props, State> {
 
   render(): React.ReactNode {
     return (
-      <div className="flex h-full flex-col items-center">
-        <div className="w-full">
-          <Slider />
-        </div>
-        <div className="h-full w-full">
-          <div className="flex h-full flex-row">
-            <Metadata track={playground} />
-            <Controls />
-            <Options />
+      <>
+        <div className="flex h-full flex-col items-center">
+          <div className="w-full">
+            <Slider />
           </div>
+          <div className="h-full w-full">
+            <div className="flex h-full flex-row">
+              <Metadata track={playground} />
+              <Controls />
+              <Options />
+            </div>
+          </div>
+          <button onClick={() => this.toggleAnalyzer()}>
+            Active AudioMotion
+          </button>
         </div>
-        <button onClick={() => this.toggleAnalyzer()}>
-          Active AudioMotion
-        </button>
-      </div>
+      </>
     );
   }
 }
@@ -197,13 +186,10 @@ export default Player;
 
 interface Props { }
 interface State {
-  audioElement: HTMLAudioElement | undefined;
-  videoElement: HTMLVideoElement | undefined;
+
   isPlaying: boolean;
   isPaused: boolean;
   isReady: boolean;
-  audioSourceNode: MediaElementAudioSourceNode | undefined;
-  audioContext: AudioContext | undefined;
   isAnalyzer: boolean;
   queue: Track[];
 }
