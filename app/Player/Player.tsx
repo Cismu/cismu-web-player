@@ -63,38 +63,45 @@ class Player extends React.Component<Props, State> {
     if (data) {
       return new CustomEvent<EData>(eName, { detail: data });
     }
-
     return new Event(eName);
   }
 
   componentDidMount(): void {
-    if (
-      !this.state.audioElement &&
-      !this.state.videoElement &&
-      !this.state.audioSourceNode &&
-      !this.state.audioContext
-    ) {
-      this.setState((prevState) => {
-        let audio = document.createElement("audio");
-        audio.src = playground.src;
-        audio.crossOrigin = "anonymous";
-
-        let video = document.createElement("video");
-        video.src = playground.src;
-        video.crossOrigin = "anonymous";
-
-        let audioContext = new AudioContext();
-
-        let audioNode = audioContext.createMediaElementSource(audio);
-
-        return {
-          audioElement: audio,
-          videoElement: video,
-          audioSourceNode: audioNode,
-          audioContext: audioContext,
-        };
+    if (this.state.audioElement === undefined) {
+      let audio = document.createElement("audio");
+      audio.src = playground.src;
+      audio.crossOrigin = "anonymous";
+      this.setState({
+        audioElement: audio
       });
     }
+
+    if (this.state.videoElement === undefined) {
+      let video = document.createElement("video");
+      video.src = playground.src;
+      video.crossOrigin = "anonymous";
+      this.setState({
+        videoElement: video
+      });
+    }
+
+    if (this.state.audioContext === undefined) {
+      let audioContext = new AudioContext();
+      this.setState({
+        audioContext: audioContext
+      });
+    }
+
+    if (this.state.audioSourceNode === undefined) {
+      if (this.state.audioElement && this.state.audioContext) {
+        let audio = this.state.audioElement;
+        let audioNode = this.state.audioContext.createMediaElementSource(audio);
+        this.setState({
+          audioSourceNode: audioNode
+        });
+      }
+    }
+
 
     if ("mediaSession" in navigator) {
       this.mediaSession();
@@ -115,8 +122,6 @@ class Player extends React.Component<Props, State> {
       this.state.audioElement.pause();
     }
   }
-
-  stop() {}
 
   toggleAnalyzer() {
     if (this.state.audioSourceNode && !this.state.isAnalyzer) {
@@ -148,7 +153,7 @@ class Player extends React.Component<Props, State> {
 
     navigator.mediaSession.setActionHandler("play", () => this.play());
     navigator.mediaSession.setActionHandler("pause", () => this.pause());
-    navigator.mediaSession.setActionHandler("stop", () => this.stop());
+    navigator.mediaSession.setActionHandler("stop", () => { });
 
     navigator.mediaSession.setActionHandler("seekbackward", () => {
       /* Code excerpted. */
@@ -190,7 +195,7 @@ class Player extends React.Component<Props, State> {
 
 export default Player;
 
-interface Props {}
+interface Props { }
 interface State {
   audioElement: HTMLAudioElement | undefined;
   videoElement: HTMLVideoElement | undefined;
@@ -202,120 +207,3 @@ interface State {
   isAnalyzer: boolean;
   queue: Track[];
 }
-
-// interface ArtworkItem_ {
-//   url: string;
-//   width: number;
-//   height: number;
-//   sizes: string;
-//   type: string;
-// }
-
-// interface Trackk {
-//   title: string;
-//   artist: string | string[];
-//   album: string;
-//   artwork: ArtworkItem_[];
-//   src: string;
-//   id: string;
-// }
-
-// {
-//   "album": {
-//     "album_type": "compilation",
-//     "total_tracks": 9,
-//     "available_markets": [
-//       "CA",
-//       "BR",
-//       "IT"
-//     ],
-//     "external_urls": {
-//       "spotify": "string"
-//     },
-//     "href": "string",
-//     "id": "2up3OPMp9Tb4dAKM2erWXQ",
-//     "images": [
-//       {
-//         "url": "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228\n",
-//         "height": 300,
-//         "width": 300
-//       }
-//     ],
-//     "name": "string",
-//     "release_date": "1981-12",
-//     "release_date_precision": "year",
-//     "restrictions": {
-//       "reason": "market"
-//     },
-//     "type": "album",
-//     "uri": "spotify:album:2up3OPMp9Tb4dAKM2erWXQ",
-//     "album_group": "compilation",
-//     "artists": [
-//       {
-//         "external_urls": {
-//           "spotify": "string"
-//         },
-//         "href": "string",
-//         "id": "string",
-//         "name": "string",
-//         "type": "artist",
-//         "uri": "string"
-//       }
-//     ]
-//   },
-//   "artists": [
-//     {
-//       "external_urls": {
-//         "spotify": "string"
-//       },
-//       "followers": {
-//         "href": "string",
-//         "total": 0
-//       },
-//       "genres": [
-//         "Prog rock",
-//         "Grunge"
-//       ],
-//       "href": "string",
-//       "id": "string",
-//       "images": [
-//         {
-//           "url": "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228\n",
-//           "height": 300,
-//           "width": 300
-//         }
-//       ],
-//       "name": "string",
-//       "popularity": 0,
-//       "type": "artist",
-//       "uri": "string"
-//     }
-//   ],
-//   "available_markets": [
-//     "string"
-//   ],
-//   "disc_number": 0,
-//   "duration_ms": 0,
-//   "explicit": true,
-//   "external_ids": {
-//     "isrc": "string",
-//     "ean": "string",
-//     "upc": "string"
-//   },
-//   "external_urls": {
-//     "spotify": "string"
-//   },
-//   "href": "string",
-//   "id": "string",
-//   "is_playable": true,
-//   "restrictions": {
-//     "reason": "string"
-//   },
-//   "name": "string",
-//   "popularity": 0,
-//   "preview_url": "string",
-//   "track_number": 0,
-//   "type": "string",
-//   "uri": "string",
-//   "is_local": true
-// }

@@ -10,9 +10,7 @@ export default function AudioMotionAnalyzer(props: any) {
 
   useEffect(() => {
     setLoad(true);
-  });
 
-  useEffect(() => {
     if (isLoad) {
       let container = !containerRef.current ? undefined : containerRef.current;
 
@@ -27,6 +25,8 @@ export default function AudioMotionAnalyzer(props: any) {
       motion?.disconnectInput();
     };
   }, [!isLoad]);
+
+
 
   if (motion) {
     motion.height = 500;
