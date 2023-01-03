@@ -13,7 +13,12 @@ const playground: Track = {
   album: "Arcane League of Legends (Soundtrack from the Animated Series)",
   artist: "Bea Miller",
   artists: ["Arcane", "Bea Miller", "Yung Baby Tate"],
-  artwork: [
+  artwork: {
+    src: "https://i.ibb.co/ccxt65y/cover-256x256.png",
+    sizes: "256x256",
+    type: "image/png",
+  },
+  artworks: [
     {
       src: "https://i.ibb.co/vhKy16K/cover-96x96.png",
       sizes: "96x96",
@@ -131,7 +136,7 @@ class Player extends React.Component<Props, State> {
       const ctx = source.getContext("2d");
       const image = new Image();
       image.crossOrigin = "anonymous";
-      image.src = String(playground.artwork.at(-1)?.src);
+      image.src = String(playground.artwork.src);
 
       if (ctx) {
         image.onload = () => {
@@ -177,7 +182,7 @@ class Player extends React.Component<Props, State> {
         ? playground.artist.toString()
         : playground.artist,
       album: playground.album,
-      artwork: playground.artwork,
+      artwork: playground.artworks,
     });
   }
 

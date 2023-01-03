@@ -9,7 +9,12 @@ export interface Track {
   artist: string;
   artists: string[];
   album: string;
-  artwork: ArtworkItem[];
+  artwork: {
+    src: string;
+    type: string;
+    sizes: "256x256";
+  };
+  artworks: ArtworkItem[];
   src: string;
 }
 
