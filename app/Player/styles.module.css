@@ -1,6 +1,7 @@
 .player {
   background-color: #23232d;
   border: 1px solid #32323d;
+  color: white;
 }
 
 .track-title-effect {
@@ -8,6 +9,25 @@
   animation-iteration-count: infinite;
   animation-duration: 15s;
   animation-timing-function: linear;
+}
+
+.title-gradient {
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 24px;
+  z-index: 30;
+}
+
+.title-gradient.left {
+  background-image: linear-gradient(90deg, #23232d, rgb(35 35 45/0%));
+  left: 0;
+}
+
+.title-gradient.right {
+  background-image: linear-gradient(90deg, rgb(35 35 45/0%), #23232d);
+  right: 0;
 }
 
 @keyframes titleloop {

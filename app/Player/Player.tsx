@@ -221,8 +221,8 @@ class Player extends React.Component<Props, State> {
 
   render(): React.ReactNode {
     let ControlProps = {
-      play: () => this.play,
-      pause: () => this.pause,
+      play: () => this.play(),
+      pause: () => this.pause(),
       paused: this.audioElement?.paused || false,
     };
     return (

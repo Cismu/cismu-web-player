@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import Play from "../../src/img/play.svg";
-import Pause from "../../src/img/pause.svg";
 
 interface Props {
   play: () => void;
@@ -12,19 +9,17 @@ interface Props {
 }
 
 export default function Controls(props: Props) {
-  const [paused, setPaused] = useState(props.paused);
+  const [paused, setPaused] = useState(false);
 
   function PlayPause() {
     if (paused) {
-      props.play();
+      props.pause();
       setPaused(false);
     } else {
-      props.pause();
+      props.play();
       setPaused(true);
     }
   }
-
-  // className="h-6 w-6 fill-current text-white"
 
   return (
     <div className="flex items-center">
@@ -37,12 +32,13 @@ export default function Controls(props: Props) {
         onClick={PlayPause}
         className="ml-1 overflow-hidden rounded-[50%] p-2 text-xl"
       >
-        <Image
-          width={16}
-          height={16}
-          src={paused ? Play : Pause}
-          alt="play-pause"
-        />
+        <svg className="h-6 w-6" fill="#FFFFFF" viewBox="0 0 16 16">
+          {paused ? (
+            <path d="M6 0H2v16h4V0zm8 0h-4v16h4V0z" />
+          ) : (
+            <path d="m3 1 12 7-12 7V1z" />
+          )}
+        </svg>
       </button>
       <button className="ml-1 overflow-hidden rounded-[50%] p-2 text-base">
         <svg className="h-4 w-4 fill-current text-white" viewBox="0 0 16 16">
