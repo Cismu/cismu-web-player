@@ -1,5 +1,4 @@
-import Cover from "../../src/img/cover.jpg";
-import Image from "next/image";
+import styles from "./styles.module.css";
 import { Track } from "./types";
 
 interface Props {
@@ -8,22 +7,27 @@ interface Props {
 
 export default function Metadata(props: Props) {
   return (
-    <div className="w-[30%]">
-      <div className="flex flex-row items-center justify-center">
-        <div className="relative">
-          <div className="h-[56px] w-[56px]">
-            <Image width={56} height={56} src={Cover} alt="Cover" />
+    <div className="flex-1 px-[72px]">
+      <div className="m-auto w-4/5 max-w-[800px]">
+        <div className="flex items-center">
+          <div>Label</div>
+          <div className="felx-1 mr-1 overflow-hidden">
+            <div className="relative overflow-hidden whitespace-nowrap">
+              <div className={`${styles["track-title-effect"]}`}>
+                {props.track.title}·{props.track.artist}
+              </div>
+            </div>
+          </div>
+          <div className="flex">
+            <button>K</button>
+            <button>L</button>
+            <button>V</button>
+            <button>N</button>
+            <button>+</button>
           </div>
         </div>
-        <div className="">
-          <div>
-            <span>{props.track.title}</span>
-          </div>
-          <div>{props.track.artist}</div>
-        </div>
-        <div className="">
-          <div>like</div>
-          <div>options</div>
+        <div>
+          <input className="w-full" type="range" />
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import Options from "./Options";
 import Slider from "./Slider";
 import Metadata from "./Metadata";
 import { ArtworkItem, Track, EData } from "./types";
-import styles from "./styles.module.css"
+import styles from "./styles.module.css";
 
 const playground: Track = {
   title: "Playground (from the series Arcane League of Legends)",
@@ -70,16 +70,18 @@ class Player extends React.Component<Props, State> {
       this.videoElement.muted = true;
 
       this.audioContext = new AudioContext();
-      this.AudioMap = new WeakMap()
+      this.AudioMap = new WeakMap();
 
       if (this.AudioMap.has(this.audioElement)) {
         this.audioSourceNode = this.AudioMap.get(this.audioElement)!; // Non-null assertion operator ! https://stackoverflow.com/q/70723319
       } else {
-        this.audioSourceNode = this.audioContext.createMediaElementSource(this.audioElement);
+        this.audioSourceNode = this.audioContext.createMediaElementSource(
+          this.audioElement
+        );
         this.AudioMap.set(this.audioElement, this.audioSourceNode);
       }
 
-      this.audioSourceNode.connect(this.audioContext.destination)
+      this.audioSourceNode.connect(this.audioContext.destination);
     }
   }
 
@@ -93,7 +95,6 @@ class Player extends React.Component<Props, State> {
   componentDidMount(): void {
     document.addEventListener("playerplay", this.play.bind(this));
     document.addEventListener("playerpause", this.pause.bind(this));
-
 
     if ("mediaSession" in navigator) {
       this.mediaSession();
@@ -109,12 +110,14 @@ class Player extends React.Component<Props, State> {
   async play() {
     if (this.audioElement) {
       await this.audioElement.play();
+      navigator.mediaSession.playbackState = "playing";
     }
   }
 
   pause() {
     if (this.audioElement) {
       this.audioElement.pause();
+      navigator.mediaSession.playbackState = "paused";
     }
   }
 
@@ -122,18 +125,18 @@ class Player extends React.Component<Props, State> {
     if (document.pictureInPictureElement) {
       document.exitPictureInPicture();
     } else if (document.pictureInPictureEnabled) {
-      const source = document.createElement('canvas');
-      source.height = 260
-      source.width = 260
-      const ctx = source.getContext('2d');
+      const source = document.createElement("canvas");
+      source.height = 260;
+      source.width = 260;
+      const ctx = source.getContext("2d");
       const image = new Image();
-      image.crossOrigin = "anonymous"
+      image.crossOrigin = "anonymous";
       image.src = String(playground.artwork.at(-1)?.src);
 
       if (ctx) {
         image.onload = () => {
           ctx.drawImage(image, 0, 0, source.width, source.height);
-        }
+        };
       }
 
       const stream = source.captureStream(25);
@@ -144,10 +147,9 @@ class Player extends React.Component<Props, State> {
             this.videoElement.requestPictureInPicture();
             this.videoElement.play();
           }
-        }
+        };
       }
     }
-
   }
 
   toggleAnalyzer() {
@@ -180,97 +182,54 @@ class Player extends React.Component<Props, State> {
   }
 
   mediaSession() {
-    type ActionTypes = [MediaSessionAction, () => void]
+    type ActionTypes = [MediaSessionAction, () => void];
     const actionHandlers: ActionTypes[] = [
       [
-        'play',
+        "play",
         async () => {
           if (this.audioElement) {
             await this.audioElement.play();
           }
-          if (this.videoElement)
-            await this.videoElement.play()
-          navigator.mediaSession.playbackState = 'playing';
-        }
+          if (this.videoElement) await this.videoElement.play();
+          navigator.mediaSession.playbackState = "playing";
+        },
       ],
       [
-        'pause',
+        "pause",
         () => {
           if (this.audioElement) {
             this.audioElement.pause();
           }
-          if (this.videoElement)
-            this.videoElement.pause()
-          navigator.mediaSession.playbackState = 'paused';
-        }
+          if (this.videoElement) this.videoElement.pause();
+          navigator.mediaSession.playbackState = "paused";
+        },
       ],
-      [
-        'previoustrack',
-        () => { }
-      ],
-      [
-        'nexttrack',
-        () => { }
-      ]
-    ]
+      ["previoustrack", () => {}],
+      ["nexttrack", () => {}],
+    ];
 
     for (const [action, handler] of actionHandlers) {
       try {
         navigator.mediaSession.setActionHandler(action, handler);
       } catch (error) {
-        console.log(`The media session action "${action}" is not supported yet.`);
+        console.log(
+          `The media session action "${action}" is not supported yet.`
+        );
       }
     }
   }
 
   render(): React.ReactNode {
-    let style = {
-      backgroundColor: "#23232d",
-      border: "1px solid #32323d",
-    }
-    // transform: translate3d(0px, 0px, 0px);
-    // will-change: transform;
-
+    let ControlProps = {
+      play: () => this.play,
+      pause: () => this.pause,
+      paused: this.audioElement?.paused || false,
+    };
     return (
-      <div style={style} className="flex h-[80px] items-center px-6">
-        <div>
-          <button>B</button>
-          <button>P/P</button>
-          <button>F</button>
-        </div>
-        <div className="flex-1 px-[72px]">
-          <div className="m-auto w-4/5 max-w-[800px]">
-            <div className="flex">
-              <div>Label</div>
-              <div className="flex-1">
-                <div className="relative overflow-hidden whitespace-nowrap">
-                  <div className={`${styles["track-title-effect"]}`}>
-                    {playground.title}·{playground.artist}
-                  </div>
-                </div>
-              </div>
-              <div className="flex">
-                <button>K</button>
-                <button>L</button>
-                <button>V</button>
-                <button>N</button>
-                <button>+</button>
-              </div>
-            </div>
-            <div>
-              <input className="w-full" type="range" />
-            </div>
-          </div>
-        </div>
-        <div>
-          <button>Chromecast</button>
-          <button>L</button>
-          <button>R</button>
-          <button>V</button>
-          <button>EQ</button>
-          <button>|</button>
-          <button>P/L</button>
-        </div>
+      <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
+        <Controls {...ControlProps} />
+        <Metadata track={playground} />
+        <Options />
       </div>
     );
   }
@@ -278,9 +237,8 @@ class Player extends React.Component<Props, State> {
 
 export default Player;
 
-interface Props { }
+interface Props {}
 interface State {
-
   isPlaying: boolean;
   isPaused: boolean;
   isReady: boolean;
