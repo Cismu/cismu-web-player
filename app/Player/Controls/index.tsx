@@ -5,19 +5,15 @@ import { useState } from "react";
 interface Props {
   play: () => void;
   pause: () => void;
-  paused: boolean;
+  isPlaying: boolean;
 }
 
 export default function Controls(props: Props) {
-  const [paused, setPaused] = useState(false);
-
   function PlayPause() {
-    if (paused) {
+    if (props.isPlaying) {
       props.pause();
-      setPaused(false);
     } else {
       props.play();
-      setPaused(true);
     }
   }
 
@@ -33,7 +29,7 @@ export default function Controls(props: Props) {
         className="ml-1 overflow-hidden rounded-[50%] p-2 text-xl"
       >
         <svg className="h-6 w-6" fill="#FFFFFF" viewBox="0 0 16 16">
-          {paused ? (
+          {props.isPlaying ? (
             <path d="M6 0H2v16h4V0zm8 0h-4v16h4V0z" />
           ) : (
             <path d="m3 1 12 7-12 7V1z" />
