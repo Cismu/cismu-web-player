@@ -114,7 +114,7 @@ class Player extends React.Component<Props, State> {
   async play() {
     if (this.audioElement) {
       await this.audioElement.play();
-      this.setState({ isPlaying: true })
+      this.setState({ isPlaying: true });
       navigator.mediaSession.playbackState = "playing";
     }
 
@@ -124,7 +124,7 @@ class Player extends React.Component<Props, State> {
   pause() {
     if (this.audioElement) {
       this.audioElement.pause();
-      this.setState({ isPlaying: false })
+      this.setState({ isPlaying: false });
       navigator.mediaSession.playbackState = "paused";
     }
 
@@ -189,6 +189,7 @@ class Player extends React.Component<Props, State> {
       album: playground.album,
       artwork: playground.artworks,
     });
+    navigator.mediaSession.playbackState = 'paused'
   }
 
   mediaSession() {
@@ -197,13 +198,15 @@ class Player extends React.Component<Props, State> {
       [
         "play",
         () => {
-          this.play()
+          console.log("Play");
+          console.log(navigator.mediaSession.playbackState);
+          this.play();
         },
       ],
       [
         "pause",
         () => {
-          this.pause()
+          this.pause();
         },
       ],
       ["previoustrack", () => {}],
@@ -230,8 +233,8 @@ class Player extends React.Component<Props, State> {
 
     let MetadataProps = {
       pip: () => this.PictureinPicture(),
-      track: playground
-    }
+      track: playground,
+    };
 
     return (
       <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>

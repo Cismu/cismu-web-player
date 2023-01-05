@@ -1,0 +1,10 @@
+.topbar {
+    height: 64px;
+    min-width: 0;
+    pointer-events: none;
+    background-color: rgb(83, 83, 83);
+}
+
+.topbar div * {
+    pointer-events: all;
+}
