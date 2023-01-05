@@ -5,19 +5,15 @@ import { useState } from "react";
 interface Props {
   play: () => void;
   pause: () => void;
-  paused: boolean;
+  isPlaying: boolean;
 }
 
 export default function Controls(props: Props) {
-  const [paused, setPaused] = useState(false);
-
   function PlayPause() {
-    if (paused) {
+    if (props.isPlaying) {
       props.pause();
-      setPaused(false);
     } else {
       props.play();
-      setPaused(true);
     }
   }
 
@@ -30,17 +26,17 @@ export default function Controls(props: Props) {
       </button>
       <button
         onClick={PlayPause}
-        className="ml-1 overflow-hidden rounded-[50%] p-2 text-xl"
+        className="ml-2 overflow-hidden rounded-[50%] p-2 text-xl"
       >
         <svg className="h-6 w-6" fill="#FFFFFF" viewBox="0 0 16 16">
-          {paused ? (
+          {props.isPlaying ? (
             <path d="M6 0H2v16h4V0zm8 0h-4v16h4V0z" />
           ) : (
             <path d="m3 1 12 7-12 7V1z" />
           )}
         </svg>
       </button>
-      <button className="ml-1 overflow-hidden rounded-[50%] p-2 text-base">
+      <button className="ml-2 overflow-hidden rounded-[50%] p-2 text-base">
         <svg className="h-4 w-4 fill-current text-white" viewBox="0 0 16 16">
           <path d="M1 1v14l11-6.217V15h1V1h-1v6.217L1 1z"></path>
         </svg>

@@ -60,7 +60,6 @@ class Player extends React.Component<Props, State> {
     super(props);
     this.state = {
       isPlaying: false,
-      isPaused: true,
       isReady: false,
       isAnalyzer: false,
       queue: [],
@@ -115,15 +114,21 @@ class Player extends React.Component<Props, State> {
   async play() {
     if (this.audioElement) {
       await this.audioElement.play();
+      this.setState({ isPlaying: true });
       navigator.mediaSession.playbackState = "playing";
     }
+
+    if (this.videoElement) await this.videoElement.play();
   }
 
   pause() {
     if (this.audioElement) {
       this.audioElement.pause();
+      this.setState({ isPlaying: false });
       navigator.mediaSession.playbackState = "paused";
     }
+
+    if (this.videoElement) this.videoElement.pause();
   }
 
   PictureinPicture() {
@@ -184,6 +189,7 @@ class Player extends React.Component<Props, State> {
       album: playground.album,
       artwork: playground.artworks,
     });
+    navigator.mediaSession.playbackState = 'paused'
   }
 
   mediaSession() {
@@ -191,22 +197,16 @@ class Player extends React.Component<Props, State> {
     const actionHandlers: ActionTypes[] = [
       [
         "play",
-        async () => {
-          if (this.audioElement) {
-            await this.audioElement.play();
-          }
-          if (this.videoElement) await this.videoElement.play();
-          navigator.mediaSession.playbackState = "playing";
+        () => {
+          console.log("Play");
+          console.log(navigator.mediaSession.playbackState);
+          this.play();
         },
       ],
       [
         "pause",
         () => {
-          if (this.audioElement) {
-            this.audioElement.pause();
-          }
-          if (this.videoElement) this.videoElement.pause();
-          navigator.mediaSession.playbackState = "paused";
+          this.pause();
         },
       ],
       ["previoustrack", () => {}],
@@ -228,13 +228,13 @@ class Player extends React.Component<Props, State> {
     let ControlProps = {
       play: () => this.play(),
       pause: () => this.pause(),
-      paused: this.audioElement?.paused || false,
+      isPlaying: this.state.isPlaying || false,
     };
 
     let MetadataProps = {
       pip: () => this.PictureinPicture(),
-      track: playground
-    }
+      track: playground,
+    };
 
     return (
       <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
@@ -252,7 +252,6 @@ interface Props {}
 
 interface State {
   isPlaying: boolean;
-  isPaused: boolean;
   isReady: boolean;
   isAnalyzer: boolean;
   queue: Track[];
