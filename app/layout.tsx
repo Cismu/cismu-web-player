@@ -11,7 +11,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let classes = `${styles["grid-areas"]} grid h-full w-full grid-cols-main grid-rows-main gap-0`
+  let classes = `${styles["grid-areas"]} grid h-full w-full grid-cols-main grid-rows-main gap-0`;
   return (
     <html lang="en">
       <body>
@@ -23,6 +23,7 @@ export default function DashboardLayout({
             <div className={styles["grid-areas-sidebar"]}>
               <Sidebar />
             </div>
+            {/* <div className={styles["grid-areas-content"]}>{children}</div> */}
             <div className={styles["grid-areas-player"]}>
               <Player />
             </div>
@@ -32,7 +33,3 @@ export default function DashboardLayout({
     </html>
   );
 }
-
-
-
-/* <div className={styles["grid-areas-content"]}>{children}</div> */

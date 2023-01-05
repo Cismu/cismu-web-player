@@ -230,10 +230,16 @@ class Player extends React.Component<Props, State> {
       pause: () => this.pause(),
       paused: this.audioElement?.paused || false,
     };
+
+    let MetadataProps = {
+      pip: () => this.PictureinPicture(),
+      track: playground
+    }
+
     return (
       <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
         <Controls {...ControlProps} />
-        <Metadata track={playground} />
+        <Metadata {...MetadataProps} />
         <Options />
       </div>
     );
@@ -243,6 +249,7 @@ class Player extends React.Component<Props, State> {
 export default Player;
 
 interface Props {}
+
 interface State {
   isPlaying: boolean;
   isPaused: boolean;

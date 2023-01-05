@@ -1,12 +1,14 @@
-import Link from "next/link"
+import Link from "next/link";
+
 export default function Page() {
   return (
-    <>
+    <div>
       <Link href="/analyzer">Analyzer</Link>
-    </>
+      <Link href="/analyzer">Analyzer</Link>
+      <Link href="/analyzer">Analyzer</Link>
+    </div>
   );
 }
-
 
 // const [isLoading, setLoading] = useState(true);
 // const [audioMotion, setAudioMotion] = useState(null);
@@ -51,23 +53,6 @@ export default function Page() {
 
 // if (!isLoading && audioMotion) {
 //   audioMotionC = <AudioMotion source={audioMotion} />;
-// }
-
-// interface ArtworkItem_ {
-//   url: string;
-//   width: number;
-//   height: number;
-//   sizes: string;
-//   type: string;
-// }
-
-// interface Trackk {
-//   title: string;
-//   artist: string | string[];
-//   album: string;
-//   artwork: ArtworkItem_[];
-//   src: string;
-//   id: string;
 // }
 
 // {
