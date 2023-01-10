@@ -55,6 +55,7 @@ class Player extends React.Component<Props, State> {
   AudioMap?: WeakMap<object, MediaElementAudioSourceNode>;
   audioContext?: AudioContext;
   storage?: Storage;
+  controller?: AbortController;
 
   constructor(props: Props) {
     super(props);
@@ -66,6 +67,7 @@ class Player extends React.Component<Props, State> {
       isAnalyzer: false,
       queue: [],
       track: undefined,
+      track_status: "normal",
     };
 
     if (typeof window !== "undefined") {
@@ -78,6 +80,7 @@ class Player extends React.Component<Props, State> {
 
       this.audioContext = new AudioContext();
       this.AudioMap = new WeakMap();
+      this.controller = undefined;
 
       if (this.AudioMap.has(this.audioElement)) {
         this.audioSourceNode = this.AudioMap.get(this.audioElement)!; // Non-null assertion operator ! https://stackoverflow.com/q/70723319
@@ -92,7 +95,9 @@ class Player extends React.Component<Props, State> {
       this.storage = window.localStorage;
       this.pause = this.pause.bind(this);
       this.play = this.play.bind(this);
-      this.onLoadTrack = this.onLoadTrack.bind(this);
+
+      // Events
+      this.e_load = this.e_load.bind(this);
     }
   }
 
@@ -100,7 +105,7 @@ class Player extends React.Component<Props, State> {
     // Event syntaxt cismu:
     document.addEventListener("cismu:play", this.play);
     document.addEventListener("cismu:pause", this.pause);
-    document.addEventListener("cismu:load", this.onLoadTrack);
+    document.addEventListener("cismu:load", this.e_load);
 
     if (this.storage) {
       if (!this.state.track) {
@@ -161,18 +166,44 @@ class Player extends React.Component<Props, State> {
     // if (this.videoElement) this.videoElement.pause();
   }
 
-  loadTrack(track: Track) {
+  async loadTrack(track: Track) {
     let canceled = !document.dispatchEvent(
-      new Event("onLoadTrack", { cancelable: true })
+      new Event("cismu:load", { cancelable: true })
     );
 
     if (canceled) {
-      // A handler called preventDefault
-      console.log("canceled");
+      this.setState({ track_status: "changing" });
+      try {
+        this.controller = new AbortController();
+        let response = await fetch(track.src, {
+          signal: this.controller.signal,
+        });
+
+        console.log("Download complete", response);
+      } catch (error: any) {
+        console.error(`Download error: ${error.message}`);
+      }
+
+      this.setState({ track_status: "normal" });
     } else {
-      // None of the handlers called preventDefault
-      console.log("not canceled");
+      try {
+        this.controller = new AbortController();
+        let response = await fetch(track.src, {
+          signal: this.controller.signal,
+        });
+
+        console.log("Download complete", response);
+      } catch (error: any) {
+        console.error(`Download error: ${error.message}`);
+      }
+
+      this.setState({ track_status: "normal" });
     }
+
+    // if ("mediaSession" in navigator) {
+    //   this.mediaMetadata();
+    //   this.mediaSession();
+    // }
   }
 
   // Internal Events
@@ -184,10 +215,14 @@ class Player extends React.Component<Props, State> {
     return new Event(eName);
   }
 
-  onLoadTrack() {
-    if ("mediaSession" in navigator) {
-      this.mediaMetadata();
-      this.mediaSession();
+  e_load(e: Event) {
+    if (this.state.track_status === "changing") {
+      if (this.controller) {
+        this.controller.abort();
+      }
+      e.preventDefault();
+    } else {
+      this.setState({ track_status: "changing" });
     }
   }
 
@@ -205,10 +240,12 @@ class Player extends React.Component<Props, State> {
 
     return (
       <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
+        <button onClick={() => this.loadTrack(playground)}>
+          Load Playground
+        </button>
         <Controls {...ControlProps} />
         <Metadata {...MetadataProps} />
         <Options />
-        <button onClick={() => this.loadTrack(playground)}>Load Playground</button>
       </div>
     );
   }
@@ -274,4 +311,5 @@ interface State {
   isAnalyzer: boolean;
   queue: Track[];
   track: Track | undefined;
+  track_status: "changing" | "normal";
 }
