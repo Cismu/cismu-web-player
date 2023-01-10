@@ -1,12 +1,11 @@
 "use client";
 
-import React from "react";
-import Controls from "./Controls";
-import Options from "./Options";
-import Slider from "./Slider";
-import Metadata from "./Metadata";
-import { ArtworkItem, Track, EData } from "./types";
 import styles from "./styles.module.css";
+import Metadata from "./Metadata";
+import Controls from "./Controls";
+import { Track } from "./types";
+import Options from "./Options";
+import React from "react";
 
 const playground: Track = {
   title: "Playground (from the series Arcane League of Legends)",
@@ -55,14 +54,18 @@ class Player extends React.Component<Props, State> {
   audioSourceNode?: MediaElementAudioSourceNode;
   AudioMap?: WeakMap<object, MediaElementAudioSourceNode>;
   audioContext?: AudioContext;
+  storage?: Storage;
 
   constructor(props: Props) {
     super(props);
+
     this.state = {
       isPlaying: false,
+      isPlayable: false,
       isReady: false,
       isAnalyzer: false,
       queue: [],
+      track: undefined,
     };
 
     if (typeof window !== "undefined") {
@@ -86,28 +89,55 @@ class Player extends React.Component<Props, State> {
       }
 
       this.audioSourceNode.connect(this.audioContext.destination);
+      this.storage = window.localStorage;
+      this.pause = this.pause.bind(this);
+      this.play = this.play.bind(this);
+      this.onLoadTrack = this.onLoadTrack.bind(this);
     }
-  }
-
-  createEvent<EData>(eName: string, data?: EData): Event | CustomEvent<EData> {
-    if (data) {
-      return new CustomEvent<EData>(eName, { detail: data });
-    }
-    return new Event(eName);
   }
 
   componentDidMount(): void {
-    document.addEventListener("playerplay", this.play.bind(this));
-    document.addEventListener("playerpause", this.pause.bind(this));
+    // Event syntaxt cismu:
+    document.addEventListener("cismu:play", this.play);
+    document.addEventListener("cismu:pause", this.pause);
+    document.addEventListener("cismu:load", this.onLoadTrack);
 
-    if ("mediaSession" in navigator) {
-      this.mediaSession();
-      this.mediaMetadata();
+    if (this.storage) {
+      if (!this.state.track) {
+        let track = this.storage.getItem("last_track");
+        this.setState({ track: track ? JSON.parse(track) : undefined });
+      }
     }
+  }
 
-    if (this.audioElement) {
-      this.audioElement.crossOrigin = "anonymous";
-      this.audioElement.src = playground.src;
+  mediaMetadata() {
+    if (this.state.track) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: this.state.track.title,
+        artist: this.state.track.artist,
+        album: this.state.track.album,
+        artwork: this.state.track.artworks,
+      });
+    }
+  }
+
+  mediaSession() {
+    type ActionTypes = [MediaSessionAction, () => void];
+    const actionHandlers: ActionTypes[] = [
+      ["play", this.play],
+      ["pause", this.pause],
+      ["previoustrack", () => {}],
+      ["nexttrack", () => {}],
+    ];
+
+    for (const [action, handler] of actionHandlers) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (error) {
+        console.log(
+          `The media session action "${action}" is not supported yet.`
+        );
+      }
     }
   }
 
@@ -118,7 +148,7 @@ class Player extends React.Component<Props, State> {
       navigator.mediaSession.playbackState = "playing";
     }
 
-    if (this.videoElement) await this.videoElement.play();
+    // if (this.videoElement) await this.videoElement.play();
   }
 
   pause() {
@@ -128,7 +158,59 @@ class Player extends React.Component<Props, State> {
       navigator.mediaSession.playbackState = "paused";
     }
 
-    if (this.videoElement) this.videoElement.pause();
+    // if (this.videoElement) this.videoElement.pause();
+  }
+
+  loadTrack(track: Track) {
+    let canceled = !document.dispatchEvent(
+      new Event("onLoadTrack", { cancelable: true })
+    );
+
+    if (canceled) {
+      // A handler called preventDefault
+      console.log("canceled");
+    } else {
+      // None of the handlers called preventDefault
+      console.log("not canceled");
+    }
+  }
+
+  // Internal Events
+
+  createEvent<EData>(eName: string, data?: EData): Event | CustomEvent<EData> {
+    if (data) {
+      return new CustomEvent<EData>(eName, { detail: data });
+    }
+    return new Event(eName);
+  }
+
+  onLoadTrack() {
+    if ("mediaSession" in navigator) {
+      this.mediaMetadata();
+      this.mediaSession();
+    }
+  }
+
+  render(): React.ReactNode {
+    let ControlProps = {
+      play: this.play,
+      pause: this.pause,
+      isPlaying: this.state.isPlaying || false,
+    };
+
+    let MetadataProps = {
+      pip: () => this.PictureinPicture(),
+      track: playground,
+    };
+
+    return (
+      <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
+        <Controls {...ControlProps} />
+        <Metadata {...MetadataProps} />
+        <Options />
+        <button onClick={() => this.loadTrack(playground)}>Load Playground</button>
+      </div>
+    );
   }
 
   PictureinPicture() {
@@ -179,71 +261,6 @@ class Player extends React.Component<Props, State> {
       });
     }
   }
-
-  mediaMetadata() {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: playground.title,
-      artist: Array.isArray(playground.artist)
-        ? playground.artist.toString()
-        : playground.artist,
-      album: playground.album,
-      artwork: playground.artworks,
-    });
-    navigator.mediaSession.playbackState = 'paused'
-  }
-
-  mediaSession() {
-    type ActionTypes = [MediaSessionAction, () => void];
-    const actionHandlers: ActionTypes[] = [
-      [
-        "play",
-        () => {
-          console.log("Play");
-          console.log(navigator.mediaSession.playbackState);
-          this.play();
-        },
-      ],
-      [
-        "pause",
-        () => {
-          this.pause();
-        },
-      ],
-      ["previoustrack", () => {}],
-      ["nexttrack", () => {}],
-    ];
-
-    for (const [action, handler] of actionHandlers) {
-      try {
-        navigator.mediaSession.setActionHandler(action, handler);
-      } catch (error) {
-        console.log(
-          `The media session action "${action}" is not supported yet.`
-        );
-      }
-    }
-  }
-
-  render(): React.ReactNode {
-    let ControlProps = {
-      play: () => this.play(),
-      pause: () => this.pause(),
-      isPlaying: this.state.isPlaying || false,
-    };
-
-    let MetadataProps = {
-      pip: () => this.PictureinPicture(),
-      track: playground,
-    };
-
-    return (
-      <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
-        <Controls {...ControlProps} />
-        <Metadata {...MetadataProps} />
-        <Options />
-      </div>
-    );
-  }
 }
 
 export default Player;
@@ -252,7 +269,9 @@ interface Props {}
 
 interface State {
   isPlaying: boolean;
+  isPlayable: boolean;
   isReady: boolean;
   isAnalyzer: boolean;
   queue: Track[];
+  track: Track | undefined;
 }
