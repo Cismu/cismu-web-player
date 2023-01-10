@@ -3,39 +3,41 @@ import uuid from "uuid-browser/v4";
 import { Track } from "../types";
 import Image from "next/image";
 import Link from "next/link";
+import Cover from "../../../src/cover.jpg";
 
 interface Props {
-  track: Track;
+  track: Track | undefined;
   pip: () => void;
 }
 
 function MusicData(props: Props) {
+  let artwork = props.track ? props.track.artwork.src : null;
+  let title = props.track ? props.track.title : "";
+  let artists = props.track ? props.track.artists : [];
+
   return (
     <div className="flex items-center">
       <div style={{ boxShadow: "0 0 10px rgb(0 0 0 / 30%)" }} className="mr-2">
-        <div>
-          <Image
-            width={46}
-            height={46}
-            src={props.track.artwork.src}
-            alt="portada"
-          />
-        </div>
+        {artwork ? (
+          <div>
+            <Image width={46} height={46} src={artwork} alt="portada" />
+          </div>
+        ) : null}
       </div>
       <div className="flex-1 overflow-hidden">
         <div className="relative overflow-hidden whitespace-nowrap">
           <span className={`${styles["title-gradient"]} ${styles["left"]}`} />
           <div className={`${styles["track-title-effect"]}`}>
-            <Link href={"/artist"}>{props.track.title}</Link>
+            <Link href={"/artist"}>{title}</Link>
           </div>
           <span className={`${styles["title-gradient"]} ${styles["right"]}`} />
         </div>
         <div className="justify-left flex">
-          {props.track.artists.map((artist, index) => {
+          {artists.map((artist, index) => {
             return (
               <div key={uuid()}>
                 <Link href={"/artist"}>{artist}</Link>
-                {index !== props.track.artists.length - 1 ? ", " : ""}
+                {index !== artists.length - 1 ? ", " : ""}
               </div>
             );
           })}

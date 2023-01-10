@@ -7,52 +7,12 @@ import { Track } from "./types";
 import Options from "./Options";
 import React from "react";
 
-const playground: Track = {
-  title: "Playground (from the series Arcane League of Legends)",
-  album: "Arcane League of Legends (Soundtrack from the Animated Series)",
-  artist: "Bea Miller",
-  artists: ["Arcane", "Bea Miller", "Yung Baby Tate"],
-  artwork: {
-    src: "https://i.ibb.co/ccxt65y/cover-256x256.png",
-    sizes: "256x256",
-    type: "image/png",
-  },
-  artworks: [
-    {
-      src: "https://i.ibb.co/vhKy16K/cover-96x96.png",
-      sizes: "96x96",
-      type: "image/png",
-    },
-    {
-      src: "https://i.ibb.co/7yqc2sh/cover-128x128.png",
-      sizes: "128x128",
-      type: "image/png",
-    },
-    {
-      src: "https://i.ibb.co/ccxt65y/cover-256x256.png",
-      sizes: "256x256",
-      type: "image/png",
-    },
-    {
-      src: "https://i.ibb.co/MSJqrFr/cover-384x384.png",
-      sizes: "384x384",
-      type: "image/png",
-    },
-    {
-      src: "https://i.ibb.co/JzjNZn4/cover-4-512x512.png",
-      sizes: "512x512",
-      type: "image/png",
-    },
-  ],
-  src: "https://dl.dropboxusercontent.com/s/26we5rwpi1pefpr/Playground%20%28from%20the%20series%20Arcane%20League%20of%20Legends%29.flac?dl=0",
-};
-
 class Player extends React.Component<Props, State> {
   state: State;
   audioElement?: HTMLAudioElement;
   videoElement?: HTMLVideoElement;
   audioSourceNode?: MediaElementAudioSourceNode;
-  AudioMap?: WeakMap<object, MediaElementAudioSourceNode>;
+  audioMap?: WeakMap<object, MediaElementAudioSourceNode>;
   audioContext?: AudioContext;
   storage?: Storage;
   controller?: AbortController;
@@ -79,16 +39,15 @@ class Player extends React.Component<Props, State> {
       this.videoElement.muted = true;
 
       this.audioContext = new AudioContext();
-      this.AudioMap = new WeakMap();
-      this.controller = undefined;
+      this.audioMap = new WeakMap();
 
-      if (this.AudioMap.has(this.audioElement)) {
-        this.audioSourceNode = this.AudioMap.get(this.audioElement)!; // Non-null assertion operator ! https://stackoverflow.com/q/70723319
+      if (this.audioMap.has(this.audioElement)) {
+        this.audioSourceNode = this.audioMap.get(this.audioElement)!; // Non-null assertion operator ! https://stackoverflow.com/q/70723319
       } else {
         this.audioSourceNode = this.audioContext.createMediaElementSource(
           this.audioElement
         );
-        this.AudioMap.set(this.audioElement, this.audioSourceNode);
+        this.audioMap.set(this.audioElement, this.audioSourceNode);
       }
 
       this.audioSourceNode.connect(this.audioContext.destination);
@@ -107,12 +66,12 @@ class Player extends React.Component<Props, State> {
     document.addEventListener("cismu:pause", this.pause);
     document.addEventListener("cismu:load", this.e_load);
 
-    if (this.storage) {
-      if (!this.state.track) {
-        let track = this.storage.getItem("last_track");
-        this.setState({ track: track ? JSON.parse(track) : undefined });
-      }
-    }
+    // if (this.storage) {
+    //   if (!this.state.track) {
+    //     let track = this.storage.getItem("last_track");
+    //     this.setState({ track: track ? JSON.parse(track) : undefined });
+    //   }
+    // }
   }
 
   mediaMetadata() {
@@ -168,7 +127,7 @@ class Player extends React.Component<Props, State> {
 
   async loadTrack(track: Track) {
     let canceled = !document.dispatchEvent(
-      new Event("cismu:load", { cancelable: true })
+      this.createEvent("cismu:load", { cancelable: true })
     );
 
     if (canceled) {
@@ -178,7 +137,7 @@ class Player extends React.Component<Props, State> {
         let response = await fetch(track.src, {
           signal: this.controller.signal,
         });
-
+        this.setState({ track });
         console.log("Download complete", response);
       } catch (error: any) {
         console.error(`Download error: ${error.message}`);
@@ -191,13 +150,16 @@ class Player extends React.Component<Props, State> {
         let response = await fetch(track.src, {
           signal: this.controller.signal,
         });
-
+        this.setState({ track });
         console.log("Download complete", response);
       } catch (error: any) {
         console.error(`Download error: ${error.message}`);
       }
 
       this.setState({ track_status: "normal" });
+      // new Blob(data, {
+      //   type: "audio/mp3",
+      // });
     }
 
     // if ("mediaSession" in navigator) {
@@ -208,11 +170,15 @@ class Player extends React.Component<Props, State> {
 
   // Internal Events
 
-  createEvent<EData>(eName: string, data?: EData): Event | CustomEvent<EData> {
+  createEvent<EData>(
+    eName: string,
+    options: EventInit,
+    data?: EData
+  ): Event | CustomEvent<EData> {
     if (data) {
       return new CustomEvent<EData>(eName, { detail: data });
     }
-    return new Event(eName);
+    return new Event(eName, options);
   }
 
   e_load(e: Event) {
@@ -235,14 +201,14 @@ class Player extends React.Component<Props, State> {
 
     let MetadataProps = {
       pip: () => this.PictureinPicture(),
-      track: playground,
+      track: this.state.track,
     };
 
     return (
       <div className={`${styles["player"]} flex h-[80px] items-center px-6`}>
-        <button onClick={() => this.loadTrack(playground)}>
-          Load Playground
-        </button>
+        {/* <button onClick={() => this.loadTrack(playground)}>Playground</button>
+        {"  |  "}
+        <button onClick={() => this.loadTrack(hatsune)}>Hatsune Miku</button> */}
         <Controls {...ControlProps} />
         <Metadata {...MetadataProps} />
         <Options />
@@ -260,7 +226,7 @@ class Player extends React.Component<Props, State> {
       const ctx = source.getContext("2d");
       const image = new Image();
       image.crossOrigin = "anonymous";
-      image.src = String(playground.artwork.src);
+      // image.src = String(playground.artwork.src);
 
       if (ctx) {
         image.onload = () => {
